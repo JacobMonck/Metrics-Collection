@@ -12,7 +12,7 @@ func init() {
 
 	err := godotenv.Load()
 	if err != nil {
-	  logrus.Fatal("Error loading .env file, please ensure you have created one in the root directory.")
+		logrus.Fatal("Error loading .env file, please ensure you have created one in the root directory.")
 	}
 
 	logrus.Info("Initialization complete.")
