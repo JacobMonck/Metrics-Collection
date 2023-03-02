@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/jacobmonck/metrics-collection/src/api/db"
 	"github.com/jacobmonck/metrics-collection/src/bot"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -18,6 +19,11 @@ func init() {
 	err := godotenv.Load()
 	if err != nil {
 		logrus.Fatal("Error loading .env file, please ensure you have created one in the root directory.")
+	}
+
+	err = db.Init()
+	if err != nil {
+		panic(err)
 	}
 
 	logrus.Info("Initialization complete.")
