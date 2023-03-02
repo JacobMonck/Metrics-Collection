@@ -10,7 +10,7 @@ type Category struct {
 	ID       snowflake.ID
 	GuildID  snowflake.ID
 	Name     string
-	Channels []Channel
+	Channels []*Channel
 }
 
 type Channel struct {
@@ -18,8 +18,8 @@ type Channel struct {
 	Name       string
 	CategoryID snowflake.ID
 	Staff      bool
-	Threads    []Thread
-	Messages   []Message
+	Threads    []*Thread
+	Messages   []*Message
 }
 
 type Thread struct {
@@ -46,7 +46,7 @@ type User struct {
 	PremiumSince *time.Time
 	Pending      bool
 	Flags        uint16
-	Messages     []Message
+	Messages     []*Message
 }
 
 type Message struct {
