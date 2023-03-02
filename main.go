@@ -7,6 +7,7 @@ import (
 
 	"github.com/jacobmonck/metrics-collection/src/api/db"
 	"github.com/jacobmonck/metrics-collection/src/bot"
+	"github.com/jacobmonck/metrics-collection/src/utils"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
@@ -19,6 +20,11 @@ func init() {
 	err := godotenv.Load()
 	if err != nil {
 		logrus.Fatal("Error loading .env file, please ensure you have created one in the root directory.")
+	}
+
+	err = utils.ParseConfig("./config/config.yaml")
+	if err != nil {
+		logrus.Fatalf("Failed to load config: %s", err)
 	}
 
 	err = db.Init()
