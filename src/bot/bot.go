@@ -6,6 +6,7 @@ import (
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/jacobmonck/metrics-collection/src/bot/modules/events"
 	"github.com/jacobmonck/metrics-collection/src/utils"
 )
 
@@ -15,6 +16,7 @@ func Start() (bot.Client, error) {
 		bot.WithGatewayConfigOpts(
 			gateway.WithIntents(gateway.IntentsAll),
 		),
+		bot.WithEventListenerFunc(events.GuildReady),
 	)
 	if err != nil {
 		return nil, err

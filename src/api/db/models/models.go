@@ -8,7 +8,6 @@ import (
 
 type Category struct {
 	ID       snowflake.ID
-	GuildID  snowflake.ID
 	Name     string
 	Channels []*Channel
 }
@@ -36,7 +35,6 @@ type Thread struct {
 
 type User struct {
 	ID           snowflake.ID
-	GuildID      snowflake.ID
 	Username     string
 	Nickname     *string
 	AvatarHash   *string

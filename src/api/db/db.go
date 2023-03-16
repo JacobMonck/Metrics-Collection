@@ -6,7 +6,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
+
+var Session *gorm.DB
 
 func Init() error {
 	db, err := gorm.Open(
@@ -14,11 +17,15 @@ func Init() error {
 			"DB_DSN",
 			"postgresql://postgres:postgres@localhost:5432/metrics-collection",
 		)),
-		&gorm.Config{},
+		&gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		},
 	)
 	if err != nil {
 		return err
 	}
+
+	Session = db
 
 	logrus.Info("Successfully connected to database.")
 

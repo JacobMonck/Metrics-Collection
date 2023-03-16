@@ -29,7 +29,7 @@ func init() {
 
 	err = db.Init()
 	if err != nil {
-		panic(err)
+		logrus.WithError(err).Fatal("Failed to initialize database.")
 	}
 
 	logrus.Info("Initialization complete.")
@@ -45,9 +45,7 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt)
 
-	select {
-	case <-exit:
-		client.Close(context.Background())
-		logrus.Info("Bot connections are closed.")
-	}
+	<-exit
+	client.Close(context.Background())
+	logrus.Info("Bot connections are closed.")
 }
