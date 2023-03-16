@@ -24,8 +24,9 @@ func init() {
 
 	err = utils.ParseConfig("./config/config.yaml")
 	if err != nil {
-		logrus.Fatalf("Failed to load config: %s", err)
+		logrus.WithError(err).Fatal("Failed to load config")
 	}
+	logrus.Info(utils.Config)
 
 	err = db.Init()
 	if err != nil {

@@ -10,20 +10,16 @@ type ConfigImpl struct {
 	GuildID uint64 `yaml:"guild_id"`
 }
 
-var Config *ConfigImpl
+var Config ConfigImpl
 
 func ParseConfig(configPath string) error {
-	Config := &ConfigImpl{}
-
-	file, err := os.Open(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
 
-	d := yaml.NewDecoder(file)
-
-	if err := d.Decode(&Config); err != nil {
+	err = yaml.Unmarshal(data, &Config)
+	if err != nil {
 		return err
 	}
 

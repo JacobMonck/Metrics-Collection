@@ -8,10 +8,15 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/rest"
 	"github.com/jacobmonck/metrics-collection/src/api/db"
+	"github.com/jacobmonck/metrics-collection/src/utils"
 	"github.com/sirupsen/logrus"
 )
 
 func GuildReady(event *events.GuildReady) {
+	if uint64(event.GuildID) != utils.Config.GuildID {
+		return
+	}
+
 	go syncChannels(event.Client().Rest(), event.Guild)
 	go syncMembers(event.Client(), event.Guild)
 }
@@ -34,7 +39,7 @@ func syncMembers(client bot.Client, guild discord.Guild) {
 	db.BulkUpsertMembers(members)
 	dbDuration := time.Since(dbStart)
 
-	logrus.Infof("Sycronized members with the database in %s.", dbDuration)
+	logrus.Infof("Synchronized members with the database in %s.", dbDuration)
 }
 
 func syncChannels(rest rest.Rest, guild discord.Guild) {
@@ -42,7 +47,7 @@ func syncChannels(rest rest.Rest, guild discord.Guild) {
 
 	channels, err := rest.GetGuildChannels(guild.ID)
 	if err != nil {
-		logrus.Fatalf("Failed to syncronize channels: %s", err)
+		logrus.Fatalf("Failed to synchronize channels: %s", err)
 	}
 
 	var categoryChannels []discord.GuildCategoryChannel
@@ -62,5 +67,5 @@ func syncChannels(rest rest.Rest, guild discord.Guild) {
 
 	db.UpdateChannels(categoryChannels, textChannels, threadChannels)
 
-	logrus.Info("Finished syncronizing guild channels.")
+	logrus.Info("Finished synchronizing guild channels.")
 }
