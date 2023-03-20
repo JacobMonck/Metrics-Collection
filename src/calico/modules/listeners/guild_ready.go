@@ -1,4 +1,4 @@
-package events
+package listeners
 
 import (
 	"time"
@@ -8,12 +8,12 @@ import (
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/rest"
 	"github.com/jacobmonck/metrics-collection/src/api/db"
-	"github.com/jacobmonck/metrics-collection/src/utils"
+	"github.com/jacobmonck/metrics-collection/src/calico"
 	"github.com/sirupsen/logrus"
 )
 
-func GuildReady(event *events.GuildReady) {
-	if uint64(event.GuildID) != utils.Config.GuildID {
+func GuildReady(b *calico.Bot, event *events.GuildReady) {
+	if uint64(event.GuildID) != b.Config.GuildID {
 		return
 	}
 
