@@ -1,12 +1,13 @@
 package main
 
 import (
+	"github.com/jacobmonck/metrics-collection/src/calico"
+	"github.com/jacobmonck/metrics-collection/src/calico/listeners"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/jacobmonck/metrics-collection/src/api/db"
-	"github.com/jacobmonck/metrics-collection/src/calico"
 	"github.com/jacobmonck/metrics-collection/src/utils"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -38,12 +39,12 @@ func main() {
 
 	bot, err := calico.New(config)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create the bot struct.")
+		logrus.WithError(err).Fatal("Failed to create the calico struct.")
 	}
 
-	err = bot.Setup()
+	err = bot.Setup(listeners.GuildReady(bot))
 	if err != nil {
-		logrus.WithError(err).Fatal("Error setting up the bot.")
+		logrus.WithError(err).Fatal("Error setting up the calico.")
 	}
 
 	err = bot.Start()

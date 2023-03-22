@@ -2,7 +2,6 @@ package calico
 
 import (
 	"context"
-
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/gateway"
@@ -10,25 +9,35 @@ import (
 )
 
 type Bot struct {
-	Client bot.Client
-	Config *utils.Config
+	Client    bot.Client
+	Config    *utils.Config
+	GuildSync Sync
+}
+
+type Sync struct {
+	MembersSynced  bool
+	ChannelsSynced bool
 }
 
 func New(config *utils.Config) (*Bot, error) {
 	b := &Bot{
 		Config: config,
+		GuildSync: Sync{
+			MembersSynced:  false,
+			ChannelsSynced: false,
+		},
 	}
 
 	return b, nil
 }
 
-func (b *Bot) Setup() error {
+func (b *Bot) Setup(listeners ...bot.EventListener) error {
 	client, err := disgo.New(
 		utils.RequireEnv("DISCORD_TOKEN"),
 		bot.WithGatewayConfigOpts(
 			gateway.WithIntents(gateway.IntentsAll),
 		),
-		bot.WithEventListeners(DiscordEventListener(b)),
+		bot.WithEventListeners(append([]bot.EventListener{}, listeners...)...),
 	)
 	if err != nil {
 		return err
@@ -46,4 +55,12 @@ func (b *Bot) Start() error {
 	}
 
 	return nil
+}
+
+func (b *Bot) GuildSynced() bool {
+	if (b.GuildSync.MembersSynced == true) && (b.GuildSync.ChannelsSynced == true) {
+		return true
+	}
+
+	return false
 }
