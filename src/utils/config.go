@@ -6,22 +6,22 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ConfigImpl struct {
+type Config struct {
 	GuildID uint64 `yaml:"guild_id"`
 }
 
-var Config ConfigImpl
-
-func ParseConfig(configPath string) error {
+func ParseConfig(configPath string) (*Config, error) {
+	var config *Config
+	
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = yaml.Unmarshal(data, &Config)
+	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return config, nil
 }

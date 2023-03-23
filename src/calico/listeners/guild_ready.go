@@ -1,37 +1,49 @@
-package events
+package listeners
 
 import (
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/events"
+	"github.com/jacobmonck/metrics-collection/src/calico"
 	"time"
 
-	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/discord"
-	"github.com/disgoorg/disgo/events"
-	"github.com/disgoorg/disgo/rest"
 	"github.com/jacobmonck/metrics-collection/src/api/db"
-	"github.com/jacobmonck/metrics-collection/src/utils"
 	"github.com/sirupsen/logrus"
 )
 
-func GuildReady(event *events.GuildReady) {
-	if uint64(event.GuildID) != utils.Config.GuildID {
-		return
-	}
+func GuildReady(b *calico.Bot) bot.EventListener {
+	return bot.NewListenerFunc(func(event *events.GuildReady) {
+		if uint64(event.GuildID) != b.Config.GuildID {
+			return
+		}
 
-	go syncChannels(event.Client().Rest(), event.Guild)
-	go syncMembers(event.Client(), event.Guild)
+		go func() {
+			syncChannels(b, event.Guild)
+			syncMembers(b, event.Guild)
+			b.GuildSync.Synced = true
+		}()
+	})
 }
 
-func syncMembers(client bot.Client, guild discord.Guild) {
+func syncMembers(b *calico.Bot, guild discord.Guild) {
 	logrus.Info("Synchronizing guild members...")
 
 	apiStart := time.Now()
-	members, err := client.MemberChunkingManager().RequestMembersWithQuery(guild.ID, "", guild.MemberCount)
+	members, err := b.Client.MemberChunkingManager().RequestMembersWithQuery(
+		guild.ID,
+		"",
+		guild.MemberCount,
+	)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to fetch members from the Discord API.")
 	}
 	apiDuration := time.Since(apiStart)
 
-	logrus.Infof("Fetched %d members from the Discord API in %s.", len(members), apiDuration)
+	logrus.Infof(
+		"Fetched %d members from the Discord API in %s.",
+		len(members),
+		apiDuration,
+	)
 
 	logrus.Info("Updating members in database...")
 
@@ -42,8 +54,10 @@ func syncMembers(client bot.Client, guild discord.Guild) {
 	logrus.Infof("Synchronized members with the database in %s.", dbDuration)
 }
 
-func syncChannels(rest rest.Rest, guild discord.Guild) {
+func syncChannels(b *calico.Bot, guild discord.Guild) {
 	logrus.Info("Synchronizing guild channels...")
+
+	rest := b.Client.Rest()
 
 	channels, err := rest.GetGuildChannels(guild.ID)
 	if err != nil {
@@ -57,7 +71,10 @@ func syncChannels(rest rest.Rest, guild discord.Guild) {
 	for _, channel := range channels {
 		switch channel.Type() {
 		case discord.ChannelTypeGuildCategory:
-			categoryChannels = append(categoryChannels, channel.(discord.GuildCategoryChannel))
+			categoryChannels = append(
+				categoryChannels,
+				channel.(discord.GuildCategoryChannel),
+			)
 		case discord.ChannelTypeGuildText:
 			textChannels = append(textChannels, channel.(discord.GuildTextChannel))
 		case discord.ChannelTypeGuildPublicThread:

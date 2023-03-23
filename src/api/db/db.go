@@ -15,7 +15,7 @@ func Init() error {
 	db, err := gorm.Open(
 		postgres.Open(utils.EnvOr(
 			"DB_DSN",
-			"postgresql://postgres:postgres@localhost:5432/metrics-collection",
+			"postgresql://postgres:postgres@localhost:5432/calico",
 		)),
 		&gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent),
