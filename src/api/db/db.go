@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var Session *gorm.DB
+var DB *gorm.DB
 
 func Init() error {
 	db, err := gorm.Open(
@@ -25,7 +25,7 @@ func Init() error {
 		return err
 	}
 
-	Session = db
+	DB = db
 
 	logrus.Info("Successfully connected to database.")
 

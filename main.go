@@ -17,6 +17,7 @@ func init() {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
+	logrus.SetLevel(logrus.TraceLevel)
 
 	err := godotenv.Load()
 	if err != nil {
@@ -42,7 +43,11 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to create the calico struct.")
 	}
 
-	err = b.Setup(listeners.GuildReady(b))
+	err = b.Setup(
+		listeners.GuildReady(b),
+		listeners.GuildMessageCreate(b),
+		listeners.GuildMessageDelete(b),
+	)
 	if err != nil {
 		logrus.WithError(err).Fatal("Error setting up the calico.")
 	}

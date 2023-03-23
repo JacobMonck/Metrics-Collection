@@ -15,7 +15,8 @@ type Bot struct {
 }
 
 type Sync struct {
-	Synced bool
+	Synced        bool
+	MessageEvents utils.Queue
 }
 
 func New(config *utils.Config) (*Bot, error) {

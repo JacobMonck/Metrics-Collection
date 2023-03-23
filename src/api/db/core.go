@@ -2,7 +2,9 @@ package db
 
 import (
 	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/jacobmonck/metrics-collection/src/api/db/models"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm/clause"
 )
 
@@ -29,9 +31,9 @@ func BulkUpsertMembers(members []discord.Member) {
 		userModels[i] = userModel
 	}
 
-	Session.Model(&models.User{}).Where("in_guild = ?", true).Update("in_guild", false)
+	DB.Model(&models.User{}).Where("in_guild = ?", true).Update("in_guild", false)
 
-	Session.Clauses(clause.OnConflict{
+	DB.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).CreateInBatches(userModels, 1000)
 }
@@ -47,7 +49,7 @@ func UpdateChannels(
 			Name: category.Name(),
 		}
 
-		Session.Save(categoryModel)
+		DB.Save(categoryModel)
 	}
 
 	for _, channel := range textChannels {
@@ -57,7 +59,7 @@ func UpdateChannels(
 			CategoryID: *channel.ParentID(),
 		}
 
-		Session.Save(channelModel)
+		DB.Save(channelModel)
 	}
 
 	for _, thread := range threadChannels {
@@ -72,6 +74,33 @@ func UpdateChannels(
 			Type:                uint16(thread.Type()),
 		}
 
-		Session.Save(threadModel)
+		DB.Save(threadModel)
+	}
+}
+
+func CreateMessage(message discord.Message, deleted bool) {
+	var threadID *snowflake.ID
+	if thread := message.Thread; thread != nil {
+		id := thread.ID()
+		threadID = &id
+	}
+
+	messageModel := &models.Message{
+		ID:        message.ID,
+		ChannelID: message.ChannelID,
+		ThreadID:  threadID,
+		UserID:    message.Author.ID,
+		CreatedAt: message.CreatedAt,
+		Deleted:   deleted,
+	}
+	DB.Save(messageModel)
+}
+
+func MarkMessageDeleted(messageID snowflake.ID) {
+	result := DB.Model(&models.Message{}).
+		Where("id = ?", messageID).
+		Update("deleted", true)
+	if result.RowsAffected == 0 {
+		logrus.Warningf("Failed to mark message %d as deleted: no matching rows.", messageID)
 	}
 }
