@@ -37,17 +37,17 @@ func main() {
 		logrus.WithError(err).Fatal("Failed to load config")
 	}
 
-	bot, err := calico.New(config)
+	b, err := calico.New(config)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to create the calico struct.")
 	}
 
-	err = bot.Setup(listeners.GuildReady(bot))
+	err = b.Setup(listeners.GuildReady(b))
 	if err != nil {
 		logrus.WithError(err).Fatal("Error setting up the calico.")
 	}
 
-	err = bot.Start()
+	err = b.Start()
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to connect to the Discord Gateway.")
 	}

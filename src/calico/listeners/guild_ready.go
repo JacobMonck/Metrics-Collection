@@ -14,12 +14,14 @@ import (
 func GuildReady(b *calico.Bot) bot.EventListener {
 	return bot.NewListenerFunc(func(event *events.GuildReady) {
 		if uint64(event.GuildID) != b.Config.GuildID {
-
 			return
 		}
 
-		go syncChannels(b, event.Guild)
-		go syncMembers(b, event.Guild)
+		go func() {
+			syncChannels(b, event.Guild)
+			syncMembers(b, event.Guild)
+			b.GuildSync.Synced = true
+		}()
 	})
 }
 
@@ -50,8 +52,6 @@ func syncMembers(b *calico.Bot, guild discord.Guild) {
 	dbDuration := time.Since(dbStart)
 
 	logrus.Infof("Synchronized members with the database in %s.", dbDuration)
-
-	b.GuildSync.MembersSynced = true
 }
 
 func syncChannels(b *calico.Bot, guild discord.Guild) {
@@ -85,6 +85,4 @@ func syncChannels(b *calico.Bot, guild discord.Guild) {
 	db.UpdateChannels(categoryChannels, textChannels, threadChannels)
 
 	logrus.Info("Finished synchronizing guild channels.")
-
-	b.GuildSync.ChannelsSynced = true
 }

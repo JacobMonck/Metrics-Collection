@@ -15,16 +15,14 @@ type Bot struct {
 }
 
 type Sync struct {
-	MembersSynced  bool
-	ChannelsSynced bool
+	Synced bool
 }
 
 func New(config *utils.Config) (*Bot, error) {
 	b := &Bot{
 		Config: config,
 		GuildSync: Sync{
-			MembersSynced:  false,
-			ChannelsSynced: false,
+			Synced: false,
 		},
 	}
 
@@ -55,12 +53,4 @@ func (b *Bot) Start() error {
 	}
 
 	return nil
-}
-
-func (b *Bot) GuildSynced() bool {
-	if (b.GuildSync.MembersSynced == true) && (b.GuildSync.ChannelsSynced == true) {
-		return true
-	}
-
-	return false
 }
