@@ -4,8 +4,10 @@ import (
 	"context"
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/jacobmonck/metrics-collection/src/api/db"
 	"github.com/jacobmonck/metrics-collection/src/utils"
 	"github.com/sirupsen/logrus"
@@ -19,6 +21,7 @@ type Bot struct {
 
 type Sync struct {
 	Synced        bool
+	ResyncChanels bool
 	MessageEvents utils.Queue
 	MemberEvents  utils.Queue
 }
@@ -60,8 +63,24 @@ func (b *Bot) Start() error {
 	return nil
 }
 
+func (b *Bot) GetGuild() (discord.Guild, error) {
+	guild, err := b.Client.Rest().GetGuild(snowflake.ID(b.Config.GuildID), false)
+	return guild.Guild, err
+}
+
 func (b *Bot) ReplayEvents() {
 	totalEvents := len(b.GuildSync.MessageEvents.Items) + len(b.GuildSync.MemberEvents.Items)
+
+	if b.GuildSync.ResyncChanels {
+		guild, err := b.GetGuild()
+		if err != nil {
+			logrus.WithError(err).Error("Failed to fetch guild for event replays.")
+			return
+		}
+
+		logrus.Info("Resynchronizing channels since an event was sent during startup synchronization.")
+		b.SyncChannels(guild)
+	}
 
 	for {
 		queuedEvent := b.GuildSync.MemberEvents.Pop()

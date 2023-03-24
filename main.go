@@ -45,6 +45,14 @@ func main() {
 
 	err = b.Setup(
 		listeners.GuildReady(b),
+		listeners.GuildAvailable(b),
+		listeners.GuildUnavailable(b),
+		listeners.GuildChannelCreate(b),
+		listeners.GuildChannelUpdate(b),
+		listeners.GuildThreadCreate(b),
+		listeners.GuildThreadUpdate(b),
+		listeners.GuildThreadArchive(b),
+		listeners.GuildThreadUnarchive(b),
 
 		listeners.GuildMessageCreate(b),
 		listeners.GuildMessageDelete(b),

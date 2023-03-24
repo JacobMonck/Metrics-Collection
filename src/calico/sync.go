@@ -1,32 +1,15 @@
-package listeners
+package calico
 
 import (
-	"github.com/disgoorg/disgo/bot"
-	"github.com/disgoorg/disgo/events"
-	"github.com/jacobmonck/metrics-collection/src/calico"
-	"time"
-
 	"github.com/disgoorg/disgo/discord"
 	"github.com/jacobmonck/metrics-collection/src/api/db"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
-func GuildReady(b *calico.Bot) bot.EventListener {
-	return bot.NewListenerFunc(func(event *events.GuildReady) {
-		if uint64(event.GuildID) != b.Config.GuildID {
-			return
-		}
+func (b *Bot) SyncGuild(guild discord.Guild) {
+	b.GuildSync.Synced = false
 
-		go func() {
-			syncChannels(b, event.Guild)
-			syncMembers(b, event.Guild)
-			b.GuildSync.Synced = true
-			b.ReplayEvents()
-		}()
-	})
-}
-
-func syncMembers(b *calico.Bot, guild discord.Guild) {
 	logrus.Info("Synchronizing guild members...")
 
 	apiStart := time.Now()
@@ -53,9 +36,13 @@ func syncMembers(b *calico.Bot, guild discord.Guild) {
 	dbDuration := time.Since(dbStart)
 
 	logrus.Infof("Synchronized members with the database in %s.", dbDuration)
+
+	b.SyncChannels(guild)
 }
 
-func syncChannels(b *calico.Bot, guild discord.Guild) {
+func (b *Bot) SyncChannels(guild discord.Guild) {
+	b.GuildSync.Synced = false
+
 	logrus.Info("Synchronizing guild channels...")
 
 	rest := b.Client.Rest()
@@ -86,4 +73,6 @@ func syncChannels(b *calico.Bot, guild discord.Guild) {
 	db.UpdateChannels(categoryChannels, textChannels, threadChannels)
 
 	logrus.Info("Finished synchronizing guild channels.")
+
+	b.GuildSync.Synced = true
 }

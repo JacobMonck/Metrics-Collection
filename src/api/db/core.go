@@ -83,6 +83,7 @@ func UpdateChannels(
 	}
 
 	for _, thread := range threadChannels {
+		logrus.Info(thread)
 		threadModel := &models.Thread{
 			ID:                  thread.ID(),
 			Name:                thread.Name(),
