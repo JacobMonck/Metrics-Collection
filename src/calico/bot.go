@@ -87,7 +87,7 @@ func (b *Bot) ReplayEvents() {
 		queuedEvent := b.GuildSync.MessageEvents.Pop()
 		switch event := queuedEvent.(type) {
 		case *events.GuildMessageCreate:
-			db.CreateMessage(event.Message, false)
+			db.CreateMessage(event.Message)
 			continue
 		case *events.GuildMessageDelete:
 			db.MarkMessageDeleted(event.MessageID)

@@ -97,7 +97,7 @@ func UpdateChannels(
 	}
 }
 
-func CreateMessage(message discord.Message, deleted bool) {
+func CreateMessage(message discord.Message) {
 	var threadID *snowflake.ID
 	if thread := message.Thread; thread != nil {
 		id := thread.ID()
@@ -110,7 +110,6 @@ func CreateMessage(message discord.Message, deleted bool) {
 		ThreadID:  threadID,
 		UserID:    message.Author.ID,
 		CreatedAt: message.CreatedAt,
-		Deleted:   deleted,
 	}
 	DB.Save(messageModel)
 }
