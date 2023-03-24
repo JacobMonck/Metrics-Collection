@@ -4,8 +4,11 @@ import (
 	"context"
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/jacobmonck/metrics-collection/src/api/db"
 	"github.com/jacobmonck/metrics-collection/src/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type Bot struct {
@@ -17,6 +20,7 @@ type Bot struct {
 type Sync struct {
 	Synced        bool
 	MessageEvents utils.Queue
+	MemberEvents  utils.Queue
 }
 
 func New(config *utils.Config) (*Bot, error) {
@@ -54,4 +58,51 @@ func (b *Bot) Start() error {
 	}
 
 	return nil
+}
+
+func (b *Bot) ReplayEvents() {
+	totalEvents := len(b.GuildSync.MessageEvents.Items) + len(b.GuildSync.MemberEvents.Items)
+
+	for {
+		queuedEvent := b.GuildSync.MemberEvents.Pop()
+		switch event := queuedEvent.(type) {
+		case *events.GuildMemberJoin:
+			db.UpdateMember(event.Member, true)
+			continue
+		case *events.GuildMemberUpdate:
+			db.UpdateMember(event.Member, true)
+			continue
+		case *events.GuildMemberLeave:
+			db.UpdateMember(event.Member, false)
+			continue
+		case nil:
+			break
+		}
+		break
+	}
+
+	logrus.Trace("Finished replaying member events.")
+
+	for {
+		queuedEvent := b.GuildSync.MessageEvents.Pop()
+		switch event := queuedEvent.(type) {
+		case *events.GuildMessageCreate:
+			db.CreateMessage(event.Message, false)
+			continue
+		case *events.GuildMessageDelete:
+			db.MarkMessageDeleted(event.MessageID)
+			continue
+		case nil:
+			break
+		}
+		break
+	}
+
+	logrus.Trace("Finished replaying message events.")
+
+	if totalEvents == 0 {
+		return
+	}
+
+	logrus.Infof("Replayed a total of %d events.", totalEvents)
 }

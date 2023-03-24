@@ -12,10 +12,11 @@ func BulkUpsertMembers(members []discord.Member) {
 	userModels := make([]*models.User, len(members))
 
 	for i, member := range members {
-		var avatarHash *string
-		if member.Avatar != nil {
+		avatarHash := member.Avatar
+		if avatarHash == nil {
 			avatarHash = member.User.Avatar
 		}
+
 		userModel := &models.User{
 			ID:           member.User.ID,
 			Username:     member.User.Username,
@@ -38,6 +39,27 @@ func BulkUpsertMembers(members []discord.Member) {
 	}).CreateInBatches(userModels, 1000)
 }
 
+func UpdateMember(member discord.Member, inGuild bool) {
+	avatarHash := member.Avatar
+	if avatarHash == nil {
+		avatarHash = member.User.Avatar
+	}
+
+	memberModel := &models.User{
+		ID:           member.User.ID,
+		Username:     member.User.Username,
+		Nickname:     member.Nick,
+		AvatarHash:   avatarHash,
+		JoinedAt:     member.JoinedAt,
+		CreatedAt:    member.User.CreatedAt(),
+		InGuild:      inGuild,
+		PremiumSince: member.PremiumSince,
+		Pending:      member.Pending,
+		Flags:        uint16(member.Flags),
+	}
+	DB.Save(memberModel)
+}
+
 func UpdateChannels(
 	categoryChannels []discord.GuildCategoryChannel,
 	textChannels []discord.GuildTextChannel,
@@ -48,7 +70,6 @@ func UpdateChannels(
 			ID:   category.ID(),
 			Name: category.Name(),
 		}
-
 		DB.Save(categoryModel)
 	}
 
@@ -58,7 +79,6 @@ func UpdateChannels(
 			Name:       channel.Name(),
 			CategoryID: *channel.ParentID(),
 		}
-
 		DB.Save(channelModel)
 	}
 
@@ -73,7 +93,6 @@ func UpdateChannels(
 			Locked:              thread.ThreadMetadata.Locked,
 			Type:                uint16(thread.Type()),
 		}
-
 		DB.Save(threadModel)
 	}
 }

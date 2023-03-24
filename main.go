@@ -45,8 +45,13 @@ func main() {
 
 	err = b.Setup(
 		listeners.GuildReady(b),
+
 		listeners.GuildMessageCreate(b),
 		listeners.GuildMessageDelete(b),
+
+		listeners.GuildMemberJoin(b),
+		listeners.GuildMemberUpdate(b),
+		listeners.GuildMemberLeave(b),
 	)
 	if err != nil {
 		logrus.WithError(err).Fatal("Error setting up the calico.")

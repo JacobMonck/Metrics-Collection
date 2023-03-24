@@ -21,6 +21,7 @@ func GuildReady(b *calico.Bot) bot.EventListener {
 			syncChannels(b, event.Guild)
 			syncMembers(b, event.Guild)
 			b.GuildSync.Synced = true
+			b.ReplayEvents()
 		}()
 	})
 }
